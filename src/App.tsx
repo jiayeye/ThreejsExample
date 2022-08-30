@@ -1,34 +1,32 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import React, { Suspense } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { Environment, OrbitControls, useFBX } from '@react-three/drei';
+import Model from './Avatar';
 
-function App() {
-  const [count, setCount] = useState(0)
+const Scene = () => {
+  const fbx = useFBX("model.fbx");
 
+  return <primitive object={fbx} scale={0.1}  rotation = {[-Math.PI / 2, 0, 0]} position = {[0.0, -1, 0]}/>;
+};
+
+export default function App() {
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
-  )
+    <Canvas 
+      camera = {{position: [2,0,12.25], fov: 15}}
+      style = {{
+        background: '#111a21',
+        width: '100vw',
+        height: '100vh'
+      }}
+    >
+      <ambientLight intensity = { 0.4}/>
+      <directionalLight intensity={0.4} position = {[0.0, 1, 1]}/>
+      <Suspense fallback={null}>
+          <Scene />
+          <Model position = {[1.225, -0.9, 0]} />
+          <Environment preset="sunset" background />
+      </Suspense>
+      <OrbitControls />
+    </Canvas>
+  );
 }
-
-export default App
