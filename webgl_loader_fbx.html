@@ -39,7 +39,7 @@
 			import { OrbitControls } from './OrbitControls.js';
 			import { FBXLoader } from './FBXLoader.js';
 
-			let camera, scene, renderer, stats;
+			let camera, scene, renderer, controls;
 
 			const clock = new THREE.Clock();
 
@@ -54,7 +54,7 @@
 				document.body.appendChild( container );
 
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 20000 );
-				camera.position.set( 1000, 2000, 3000 );
+				camera.position.set( 0, 500, 3000 );
 
 				scene = new THREE.Scene();
 				scene.background = new THREE.Color( 0xffffff );
@@ -111,9 +111,11 @@
 				renderer.shadowMap.enabled = true;
 				container.appendChild( renderer.domElement );
 
-				const controls = new OrbitControls( camera, renderer.domElement );
-				controls.target.set( 0, 100, 0 );
-				controls.update();
+				controls = new OrbitControls( camera, renderer.domElement );
+				controls.autoRotate = true;
+				controls.autoRotateSpeed = 1.5;
+				controls.target.set( 0, 200, 0 );
+				
 
 				window.addEventListener( 'resize', onWindowResize );
 
@@ -140,6 +142,7 @@
 
 				const delta = clock.getDelta();
 
+				controls.update();
 				// if ( mixer ) mixer.update( delta );
 
 				renderer.render( scene, camera );
