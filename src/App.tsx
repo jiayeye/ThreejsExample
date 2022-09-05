@@ -6,11 +6,11 @@ import Model from './Avatar';
 const Scene = () => {
 
   // const man = useFBX("http://rhkbqy9os.hn-bkt.clouddn.com/fbx/man.fbx?e=1662089314&token=OkXHJZMiNUEjV5wqnHmy73EoxxBwOWPqA6co-0Qv:V8wW1rs97cLRKq31yUs1udlE6aI=");
-  // const dianshi = useFBX("http://rhkbqy9os.hn-bkt.clouddn.com/dianshi.fbx?e=1662361411&token=OkXHJZMiNUEjV5wqnHmy73EoxxBwOWPqA6co-0Qv:qWAtK99_dnHebPBVS0NhzvHQ1ro=");
-  const xiyiji = useFBX("http://rhkbqy9os.hn-bkt.clouddn.com/xiyiji.FBX?e=1662364872&token=OkXHJZMiNUEjV5wqnHmy73EoxxBwOWPqA6co-0Qv:b4RCTXe68s-BM2ud61oRlJ_RzzE=");
+  const dianshi = useFBX("http://rhkbqy9os.hn-bkt.clouddn.com/dianshi.fbx?e=1662361411&token=OkXHJZMiNUEjV5wqnHmy73EoxxBwOWPqA6co-0Qv:qWAtK99_dnHebPBVS0NhzvHQ1ro=");
+  // const xiyiji = useFBX("http://rhkbqy9os.hn-bkt.clouddn.com/xiyiji.FBX?e=1662364872&token=OkXHJZMiNUEjV5wqnHmy73EoxxBwOWPqA6co-0Qv:b4RCTXe68s-BM2ud61oRlJ_RzzE=");
 
   
-  return (<primitive object={xiyiji} scale={0.001} position = {[0.0, 0, 0]} >
+  return (<primitive object={dianshi} scale={0.001} position = {[0.0, 0, 0]} >
 
     <Html className = 'content'>
       <div >
