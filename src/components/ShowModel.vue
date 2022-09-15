@@ -53,8 +53,6 @@ export default {
                 dirLight.castShadow = true;
                 console.log(dirLight.shadow.camera);
                 
-                
-
                 // ground
                 const ground = new THREE.Mesh(new THREE.PlaneGeometry(10000, 10000), new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false }));
                 ground.rotation.x = - Math.PI / 2;
