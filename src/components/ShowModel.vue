@@ -11,7 +11,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 
+RGBELoader
 export default {
     props: ["modelUrl"],
     // data() {
@@ -135,6 +137,32 @@ export default {
                     canvas.hidden = false;
                 }, onProgress, onError);
 
+                // 设置skybox
+                const environments = {
+					'Venice Sunset': { filename: 'venice_sunset_1k.hdr' },
+					'Overpass': { filename: 'pedestrian_overpass_1k.hdr' }
+				};
+				function loadEnvironment( name ) {
+					if ( environments[ name ].texture !== undefined ) {
+						scene.background = environments[ name ].texture;
+						scene.environment = environments[ name ].texture;
+						return;
+					}
+					const filename = environments[ name ].filename;
+					new RGBELoader()
+						.setPath( 'equirectangular/' )
+						.load( filename, function ( hdrEquirect ) {
+							hdrEquirect.mapping = THREE.EquirectangularReflectionMapping;
+							scene.background = hdrEquirect;
+							scene.environment = hdrEquirect;
+							environments[ name ].texture = hdrEquirect;
+						} );
+				}
+				const params = {
+					environment: Object.keys( environments )[ 0 ]
+				};
+                //加载天空球
+				loadEnvironment( params.environment );
 
                 window.addEventListener('resize', onWindowResize);
             }
