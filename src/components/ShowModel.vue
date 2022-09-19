@@ -1,8 +1,15 @@
 <template>
   <div>
-    <text id="errorText" ref="errorText">加载失败，请检查资源</text>
+    <div id="textDiv">
+      <text id="errorText" v-if="showErrorInfo">加载失败，请检查资源</text>
+    </div>
     <canvas id="threeCanvas" ref="threeCanvas"></canvas>
-    <progress id="progress" ref="progress" value="0" max="100"></progress>
+    <progress
+      id="progress"
+      v-if="showProgress"
+      :value="progressValue"
+      max="100"
+    ></progress>
   </div>
 </template>
 
@@ -11,7 +18,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 
-let camera, scene, renderer, controls, cameraMaxDistance;
+let camera, scene, renderer, controls;
 
 export default {
   props: {
@@ -20,20 +27,23 @@ export default {
       required: true,
     },
   },
-
+  data() {
+    return {
+      showErrorInfo: false,
+      showProgress: true,
+      progressValue: 0,
+    };
+  },
   mounted() {
     this.initScene(this.modelUrl);
   },
   methods: {
     initScene(modelUrl) {
       // 相机far
-      cameraMaxDistance = 20000;
+      const cameraMaxDistance = 20000;
 
       // 设置初始化状态
-      const errorText = this.$refs.errorText;
-      errorText.hidden = true;
-      const canvas = this.$refs.threeCanvas;
-      canvas.hidden = true;
+      this.$refs.threeCanvas.hidden = true;
 
       // 添加透视相机，设置fov、初始位置
       camera = new THREE.PerspectiveCamera(
@@ -67,7 +77,10 @@ export default {
       scene.add(ground);
 
       // 添加WebGLRenderer，设置size
-      renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      renderer = new THREE.WebGLRenderer({
+        canvas: this.$refs.threeCanvas,
+        antialias: true,
+      });
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.shadowMap.enabled = true;
@@ -78,32 +91,13 @@ export default {
       controls.autoRotateSpeed = 1.5;
       controls.target.set(0, 0, 0);
 
-      var progress = this.$refs.progress;
-
-      // 加载进度
-      function onProgress(xhr) {
-        if (xhr.lengthComputable) {
-          const percentComplete = (xhr.loaded / xhr.total) * 100;
-          progress.value = Math.round(percentComplete, 2);
-          // console.log("model " + Math.round(percentComplete, 2) + "% downloaded");
-        }
-      }
-
-      // 加载失败回掉
-      function onError(error) {
-        //   console.log(error.message);
-        progress.hidden = true;
-        canvas.hidden = true;
-        errorText.hidden = false;
-      }
-
       // 加载进度manager
       const manager = new THREE.LoadingManager();
       const loader = new FBXLoader(manager);
       loader.load(
         modelUrl,
-        function (object) {
-          object.traverse(function (child) {
+        (object) => {
+          object.traverse((child) => {
             if (child.isMesh) {
               child.castShadow = true;
               child.receiveShadow = false;
@@ -154,19 +148,39 @@ export default {
           // 添加object到场景里
           scene.add(object);
           // 隐藏进度条
-          progress.hidden = true;
+          this.showProgress = false;
           // 显示canvas
-          canvas.hidden = false;
+          this.$refs.threeCanvas.hidden = false;
         },
-        onProgress,
-        onError
+        this.onProgress,
+        this.onError
       );
 
       // 监听窗口reszie事件
       window.addEventListener("resize", this.onWindowResize);
+      // 监听窗口reszie事件
+      window.addEventListener("mousedown", this.onMouseDown);
       // 设置tick
       this.animate();
     },
+
+    // 加载进度
+    onProgress(xhr) {
+      if (xhr.lengthComputable) {
+        const percentComplete = (xhr.loaded / xhr.total) * 100;
+        this.progressValue = Math.round(percentComplete, 2);
+        // console.log("model " + Math.round(percentComplete, 2) + "% downloaded");
+      }
+    },
+
+    // 加载失败回掉
+    onError(error) {
+      console.log(error.message);
+      this.showProgress = false;
+      this.$refs.threeCanvas.hidden = true;
+      this.showErrorInfo = true;
+    },
+
     // 重置窗口大小
     onWindowResize() {
       camera.aspect = window.innerWidth / window.innerHeight;
@@ -174,6 +188,12 @@ export default {
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     },
+
+    // 鼠标点击事件
+    onMouseDown() {
+      controls.autoRotate = false;
+    },
+
     // 每帧调用
     animate() {
       requestAnimationFrame(this.animate);
@@ -189,6 +209,8 @@ export default {
     cancelAnimationFrame(this.animate);
     // 移除resize监听
     window.removeEventListener("resize", this.onWindowResize);
+    // 移除mouseDown监听
+    window.removeEventListener("mousedown", this.onMouseDown);
   },
 };
 </script>
@@ -207,14 +229,15 @@ export default {
   height: 2rem;
   position: fixed;
   left: 30%;
-  top: 50%;
+  top: 47%;
 }
 
-#errorText {
-  width: 50%;
-  height: 2rem;
+#textDiv {
   position: fixed;
-  left: 40%;
-  top: 50%;
+  width: 100%;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  top: 46%;
 }
 </style>
