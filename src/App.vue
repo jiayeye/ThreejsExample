@@ -4,10 +4,10 @@
   
   <template>
     <!-- 电视 -->
-    <ShowModel modelUrl= "http://rhkbqy9os.hn-bkt.clouddn.com/dianshi.fbx?e=1663222785&token=OkXHJZMiNUEjV5wqnHmy73EoxxBwOWPqA6co-0Qv:xhpUwZIfl6kv_fE6_1FieVfIsM0="/>
+    <!-- <ShowModel modelUrl= "http://rhkbqy9os.hn-bkt.clouddn.com/dianshi.fbx?e=1663222785&token=OkXHJZMiNUEjV5wqnHmy73EoxxBwOWPqA6co-0Qv:xhpUwZIfl6kv_fE6_1FieVfIsM0="/> -->
   
     <!-- 洗衣机-->
-    <!-- <ShowModel modelUrl= "http://rhkbqy9os.hn-bkt.clouddn.com/%E6%B5%B7%E5%B0%94-%E6%BB%9A%E7%AD%92-%E5%B9%B2%E8%A1%A3%E6%9C%BA-10kg-HGS100-306.fbx?e=1663237817&token=OkXHJZMiNUEjV5wqnHmy73EoxxBwOWPqA6co-0Qv:01KaJPjlnh6ndbEoII6AwpfAPjM="/> -->
+    <ShowModel modelUrl= "http://rhkbqy9os.hn-bkt.clouddn.com/%E6%B5%B7%E5%B0%94-%E6%BB%9A%E7%AD%92-%E5%B9%B2%E8%A1%A3%E6%9C%BA-10kg-HGS100-306.fbx?e=1663237817&token=OkXHJZMiNUEjV5wqnHmy73EoxxBwOWPqA6co-0Qv:01KaJPjlnh6ndbEoII6AwpfAPjM="/>
   
     <!-- 风扇 -->
     <!-- <ShowModel modelUrl= "http://rhkbqy9os.hn-bkt.clouddn.com/fengshan.fbx?e=1663232853&token=OkXHJZMiNUEjV5wqnHmy73EoxxBwOWPqA6co-0Qv:FKpmgfjP-CiChIPwHCkYocl_Xtk="/> -->
