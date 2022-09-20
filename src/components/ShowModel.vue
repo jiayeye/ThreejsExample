@@ -158,10 +158,6 @@ export default {
 
           // 添加object到场景里
           scene.add(object);
-          // 隐藏进度条
-          this.showProgress = false;
-          // 显示canvas
-          this.$refs.threeCanvas.hidden = false;
 
           // 包围位置为世界坐标，每次使用需要重新计算
           const bbox1 = new THREE.Box3().setFromObject(object);
@@ -223,10 +219,22 @@ export default {
             new THREE.Vector3(
               bbox.max.x,
               bbox.min.y,
-              (bbox.max.z + bbox.min.z ) / 2
+              (bbox.max.z + bbox.min.z) / 2
             ),
             bbox.max.z - bbox.min.z
           );
+
+          // 生成标尺的四个点
+          const radius = 7;
+          this.generatePoint(rightDownPoint, radius, material);
+          this.generatePoint(leftDownPoint, radius, material);
+          this.generatePoint(rightUpPoint, radius, material);
+          this.generatePoint(rightBackPoint, radius, material);
+
+          // 隐藏进度条
+          this.showProgress = false;
+          // 显示canvas
+          this.$refs.threeCanvas.hidden = false;
         },
         this.onProgress,
         this.onError
@@ -268,6 +276,15 @@ export default {
       label.position.set(position.x, position.y, position.z);
       // 添加到object
       parentObject.add(label);
+    },
+
+    // 生成标尺点
+    generatePoint(position, radius, material) {
+      // 生成Sphere
+      const geometry = new THREE.SphereGeometry(radius, 32, 16);
+      const sphere = new THREE.Mesh(geometry, material);
+      sphere.position.set(position.x, position.y, position.z);
+      scene.add(sphere);
     },
 
     // 加载进度
