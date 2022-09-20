@@ -260,7 +260,6 @@ export default {
         this.onError
       );
 
-      outlinePass.obj;
       // 监听窗口reszie事件
       window.addEventListener("resize", this.onWindowResize);
       // 监听窗口reszie事件
@@ -323,13 +322,13 @@ export default {
         camera
       );
       // 设置轮廓线颜色
-      outlinePass.visibleEdgeColor = new THREE.Color(0, 0, 1);
+      outlinePass.visibleEdgeColor = new THREE.Color(0, 1, 0);
       // 设置轮廓线被遮挡时颜色
-      outlinePass.hiddenEdgeColor = new THREE.Color(1, 0, 0);
+      outlinePass.hiddenEdgeColor = new THREE.Color(0, 1, 0);
       // 轮廓线强度
-      outlinePass.edgeStrength = 5;
+      outlinePass.edgeStrength = 6;
       // 轮廓线厚度
-      outlinePass.edgeThickness = 1;
+      outlinePass.edgeThickness = 2;
       // 设施轮廓线与background颜色的混合模式，默认的AdditiveBlending在白色背景下不显示轮廓线
       outlinePass.overlayMaterial.blending = THREE.NormalBlending;
       // 添加轮廓线pass
