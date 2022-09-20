@@ -22,7 +22,20 @@ import {
   CSS2DObject,
 } from "three/addons/renderers/CSS2DRenderer.js";
 
-let camera, scene, renderer, controls, labelRenderer;
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+import { OutlinePass } from "three/addons/postprocessing/OutlinePass.js";
+import { FXAAShader } from "three/addons/shaders/FXAAShader.js";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+
+let camera,
+  scene,
+  renderer,
+  controls,
+  labelRenderer,
+  composer,
+  outlinePass,
+  effectFXAA;
 
 export default {
   props: {
@@ -102,9 +115,13 @@ export default {
       controls.autoRotateSpeed = 1.5;
       controls.target.set(0, 0, 0);
 
+      // 轮廓线pass
+      this.generateOutlinePass();
+
       // 加载进度manager
       const manager = new THREE.LoadingManager();
       const loader = new FBXLoader(manager);
+      const meshes = [];
       loader.load(
         modelUrl,
         (object) => {
@@ -231,6 +248,9 @@ export default {
           this.generatePoint(rightUpPoint, radius, material);
           this.generatePoint(rightBackPoint, radius, material);
 
+          // 添加要显示轮廓线物体
+          outlinePass.selectedObjects = [object];
+
           // 隐藏进度条
           this.showProgress = false;
           // 显示canvas
@@ -240,6 +260,7 @@ export default {
         this.onError
       );
 
+      outlinePass.obj;
       // 监听窗口reszie事件
       window.addEventListener("resize", this.onWindowResize);
       // 监听窗口reszie事件
@@ -287,6 +308,43 @@ export default {
       scene.add(sphere);
     },
 
+    // 轮廓线pass
+    generateOutlinePass() {
+         // 添加后处理composer
+      composer = new EffectComposer(renderer);
+      const renderPass = new RenderPass(scene, camera);
+      // 添加renderpass
+      composer.addPass(renderPass);
+
+      // 生成轮廓线pass
+      outlinePass = new OutlinePass(
+        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        scene,
+        camera
+      );
+      // 设置轮廓线颜色
+      outlinePass.visibleEdgeColor = new THREE.Color(0, 0, 1);
+      // 设置轮廓线被遮挡时颜色
+      outlinePass.hiddenEdgeColor = new THREE.Color(1, 0, 0);
+      // 轮廓线强度
+      outlinePass.edgeStrength = 5;
+      // 轮廓线厚度
+      outlinePass.edgeThickness = 1;
+      // 设施轮廓线与background颜色的混合模式，默认的AdditiveBlending在白色背景下不显示轮廓线
+      outlinePass.overlayMaterial.blending = THREE.NormalBlending;
+      // 添加轮廓线pass
+      composer.addPass(outlinePass);
+      // 设置抗锯齿pass及参数
+      effectFXAA = new ShaderPass(FXAAShader);
+      const pixelRatio = renderer.getPixelRatio();
+      effectFXAA.uniforms["resolution"].value.set(
+        1 / (window.innerWidth * pixelRatio),
+        1 / (window.innerHeight * pixelRatio)
+      );
+      // 添加抗锯齿pass
+      composer.addPass(effectFXAA);
+    },
+
     // 加载进度
     onProgress(xhr) {
       if (xhr.lengthComputable) {
@@ -310,7 +368,13 @@ export default {
       // 更新相机投影矩阵
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
       labelRenderer.setSize(window.innerWidth, window.innerHeight);
+      const pixelRatio = renderer.getPixelRatio();
+      effectFXAA.uniforms["resolution"].value.set(
+        1 / (window.innerWidth * pixelRatio),
+        1 / (window.innerHeight * pixelRatio)
+      );
     },
 
     // 鼠标点击事件
@@ -324,7 +388,7 @@ export default {
       // 更新control状态
       controls.update();
       // 每帧渲染
-      renderer.render(scene, camera);
+      composer.render();
       labelRenderer.render(scene, camera);
     },
   },
