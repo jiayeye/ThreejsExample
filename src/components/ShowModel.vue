@@ -266,7 +266,7 @@ export default {
       divLabel.textContent = Math.floor(distance).toString() + "mm";
       divLabel.style.fontWeight = "600";
       divLabel.style.fontSize = "16px";
-      divLabel.style.padding = "2px 10px";
+      divLabel.style.padding = "0px 10px";
       divLabel.style.backgroundColor = "white";
       divLabel.style.opacity = "0.85";
       divLabel.style.borderRadius = "15px";
