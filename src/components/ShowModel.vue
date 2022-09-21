@@ -59,18 +59,18 @@ export default {
       scene.background = new THREE.Color(0xffffff);
 
       // 添加光源
-      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
-      hemiLight.position.set(0, 200, 0);
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x000000);
+      hemiLight.position.set(0, 2000, 0);
       scene.add(hemiLight);
 
       // 设置直射光
-      const dirLight = new THREE.DirectionalLight(0xffffff);
+      const dirLight = new THREE.DirectionalLight(0xdddddd);
       dirLight.castShadow = true;
 
       // 添加ground
       const ground = new THREE.Mesh(
         new THREE.PlaneGeometry(10000, 10000),
-        new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false })
+        new THREE.MeshPhongMaterial({ color: 0xaaaaaa, depthWrite: false })
       );
       ground.rotation.x = -Math.PI / 2;
       ground.receiveShadow = true;
@@ -130,7 +130,7 @@ export default {
 
           // 根据物体大小设置相机投影范围
           const dirLightY = maxValue * 1.2;
-          const dirLightZ = maxValue * 0.6;
+          const dirLightZ = maxValue * 0.8;
           dirLight.position.set(0, dirLightY, dirLightZ);
           // 设置camera投影范围
           dirLight.shadow.camera.top = dirLightY;
@@ -141,7 +141,14 @@ export default {
           dirLight.shadow.camera.far = dirLightY * 2;
           // 开启灯光投影
           dirLight.castShadow = true;
+          dirLight.intensity = 0.6;
           scene.add(dirLight);
+
+          // 设置背面直射光照
+          const dirLightBack = new THREE.DirectionalLight(0x999999);
+          dirLightBack.position.set(0, dirLightY, -dirLightZ);
+          dirLightBack.intensity = 0.15;
+          scene.add(dirLightBack);
           // 显示投影框
           // scene.add( new THREE.CameraHelper( dirLight.shadow.camera ) );
 
