@@ -10,7 +10,7 @@ import ShowModel from "./components/ShowModel.vue";
   <!-- <ShowModel modelUrl="http://rhkbqy9os.hn-bkt.clouddn.com/%E7%83%AD%E6%B0%B4%E5%99%A8.fbx?e=1663569266&token=OkXHJZMiNUEjV5wqnHmy73EoxxBwOWPqA6co-0Qv:u8tVnX6ndvd7FF5TdUsLxWB6gWU="/> -->
 
   <!-- 洗衣机-->
-  <!-- <ShowModel modelUrl= "http://rhkbqy9os.hn-bkt.clouddn.com/%E6%B5%B7%E5%B0%94-%E6%BB%9A%E7%AD%92-%E5%B9%B2%E8%A1%A3%E6%9C%BA-10kg-HGS100-306.fbx?e=1663744514&token=OkXHJZMiNUEjV5wqnHmy73EoxxBwOWPqA6co-0Qv:rvFOWF3OzGt_Phwa9rmvzhWBDnA="/> -->
+  <ShowModel modelUrl= "http://rhkbqy9os.hn-bkt.clouddn.com/%E6%B5%B7%E5%B0%94-%E6%BB%9A%E7%AD%92-%E5%B9%B2%E8%A1%A3%E6%9C%BA-10kg-HGS100-306.fbx?e=1663744514&token=OkXHJZMiNUEjV5wqnHmy73EoxxBwOWPqA6co-0Qv:rvFOWF3OzGt_Phwa9rmvzhWBDnA="/>
   
   <!-- 热水器1-->
   <!-- <ShowModel modelUrl="https://syn-yf-design-tool.oss-cn-beijing.aliyuncs.com/save_fbx/AA35U0000-RFUM100.fbx"/> -->
