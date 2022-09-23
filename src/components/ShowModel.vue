@@ -243,6 +243,7 @@ export default {
           if (child.material instanceof Array) {
             // 对于有多个材质的物体遍历
             child.material.forEach((mat) => {
+              // needsUpdate为true时更改材质参数才生效
               mat.needsUpdate = true;
               if (option.mode === "material") {
                 // 关闭线框
@@ -277,6 +278,7 @@ export default {
               }
             });
           } else {
+            // needsUpdate为true时更改材质参数才生效
             child.material.needsUpdate = true;
             if (option.mode === "material") {
               // 开启线框
