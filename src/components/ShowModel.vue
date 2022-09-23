@@ -17,8 +17,13 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
+import { OutlineEffect } from "three/examples/jsm/effects/OutlineEffect";
+import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 
-let camera, scene, renderer, controls;
+let camera, scene, renderer, controls, effect, model, wireLineModeColor;
+const option = {
+  mode: "material",
+};
 
 export default {
   props: {
@@ -41,6 +46,8 @@ export default {
     initScene(modelUrl) {
       // 相机far
       const cameraMaxDistance = 20000;
+      // 线框模式时object颜色
+      wireLineModeColor = new THREE.Color(1, 1, 1);
 
       // 设置初始化状态
       this.$refs.threeCanvas.hidden = true;
@@ -76,14 +83,28 @@ export default {
       ground.receiveShadow = true;
       scene.add(ground);
 
-      // 添加WebGLRenderer，设置size
+      // 添加WebGLRenderer，设置size,设置更精确的深度缓冲
       renderer = new THREE.WebGLRenderer({
         canvas: this.$refs.threeCanvas,
         antialias: true,
+        logarithmicDepthBuffer: true,
       });
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.shadowMap.enabled = true;
+
+      // 创建线框效果
+      effect = new OutlineEffect(renderer, { defaultThickness: 0.004 });
+      // 开启模糊
+      effect.blur = true;
+      // 是否开启
+      effect.enabled = false;
+
+      const gui = new GUI();
+      gui
+        .add(option, "mode")
+        .options(["material", "wireFrame", "materialAndWireFrame"])
+        .onChange(this.onGUIChange);
 
       // 添加相机控制器
       controls = new OrbitControls(camera, renderer.domElement);
@@ -97,12 +118,39 @@ export default {
       loader.load(
         modelUrl,
         (object) => {
+          // 记录object
+          model = object;
+          // 递归遍历所有child节点
           object.traverse((child) => {
             if (child.isMesh) {
               child.castShadow = true;
               child.receiveShadow = false;
+              // 线框模式颜色
+              if (child.material instanceof Array) {
+                // 对于有多个材质的物体遍历
+                child.material.forEach((mat) => {
+                  // 缓存颜色
+                  mat.colorCache = mat.color;
+                  mat.specularCache = mat.specular;
+                  mat.emissiveCache = mat.emissive;
+                  // 缓存顶点色
+                  mat.vertexColorsCache = mat.vertexColors;
+                  // 缓存贴图
+                  mat.mapCache = mat.map;
+                });
+              } else {
+                // 如果存在贴图，先缓存
+                child.material.mapCache = child.material.map;
+                // 缓存颜色以便恢复
+                child.material.colorCache = child.material.color;
+                child.material.specularCache = child.material.specular;
+                child.material.emissiveCache = child.material.emissive;
+                // 缓存顶点色
+                child.material.vertexColorsCache = child.material.vertexColors;
+              }
             }
           });
+
           // 根据包围盒设置地面位置，保证阴影投在最下方
           const bbox = new THREE.Box3().setFromObject(object);
           ground.position.set(0, -(bbox.max.y - bbox.min.y) / 2, 0);
@@ -188,6 +236,89 @@ export default {
       this.showErrorInfo = true;
     },
 
+    onGUIChange() {
+      model.traverse((child) => {
+        if (child.isMesh) {
+          // 线框模式颜色
+          if (child.material instanceof Array) {
+            // 对于有多个材质的物体遍历
+            child.material.forEach((mat) => {
+              mat.needsUpdate = true;
+              if (option.mode === "material") {
+                // 关闭线框
+                effect.enabled = false;
+                // 设置缓存颜色
+                mat.color = mat.colorCache;
+                mat.specular = mat.specularCache;
+                mat.emissive = mat.emissiveCache;
+                mat.vertexColors = mat.vertexColorsCache;
+                // 如果存在贴图
+                mat.map = mat.mapCache;
+              } else if (option.mode === "wireFrame") {
+                // 开启线框
+                effect.enabled = true;
+                // 设置颜色
+                mat.color = wireLineModeColor;
+                mat.specular = wireLineModeColor;
+                mat.emissive = wireLineModeColor;
+                mat.vertexColors = false;
+                // 设置贴图
+                mat.map = null;
+              } else if (option.mode === "materialAndWireFrame") {
+                // 开启线框
+                effect.enabled = true;
+                // 设置颜色
+                mat.color = mat.colorCache;
+                mat.specular = mat.specularCache;
+                mat.emissive = mat.emissiveCache;
+                mat.vertexColors = mat.vertexColorsCache;
+                // 如果存在贴图
+                mat.map = mat.mapCache;
+              }
+            });
+          } else {
+            child.material.needsUpdate = true;
+            if (option.mode === "material") {
+              // 开启线框
+              effect.enabled = false;
+              // 设置缓存map
+              child.material.map = child.material.mapCache;
+              // 设置颜色
+              child.material.color = child.material.colorCache;
+              child.material.specular = child.material.specularCache;
+              child.material.emissive = child.material.emissiveCache;
+              // 消除顶点色
+              child.material.vertexColors = child.material.vertexColorsCache;
+            } else if (option.mode === "wireFrame") {
+              // 开启线框
+              effect.enabled = true;
+              // 设置map为null
+              child.material.map = null;
+
+              // 设置颜色
+              child.material.color = wireLineModeColor;
+              child.material.specular = wireLineModeColor;
+              child.material.emissive = wireLineModeColor;
+              // 消除顶点色
+              child.material.vertexColors = false;
+            } else if (option.mode === "materialAndWireFrame") {
+              // 开启线框
+              effect.enabled = true;
+              // 设置缓存map
+              child.material.map = child.material.mapCache;
+
+              // 设置颜色
+              child.material.color = child.material.colorCache;
+              child.material.specular = child.material.specularCache;
+              child.material.emissive = child.material.emissiveCache;
+              // 消除顶点色
+              child.material.vertexColors = child.material.vertexColorsCache;
+            }
+          }
+        }
+      });
+    },
+
     // 重置窗口大小
     onWindowResize() {
       camera.aspect = window.innerWidth / window.innerHeight;
@@ -207,7 +338,7 @@ export default {
       // 更新control状态
       controls.update();
       // 每帧渲染
-      renderer.render(scene, camera);
+      effect.render(scene, camera);
     },
   },
 
