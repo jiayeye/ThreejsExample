@@ -53,7 +53,7 @@ export default {
   methods: {
     initScene(modelUrl) {
       // 相机far
-      const cameraMaxDistance = 20000;
+      const cameraMaxDistance = 12000;
       // 线框模式时object颜色
       wireLineModeColor = new THREE.Color(1, 1, 1);
       // 线框颜色
@@ -67,7 +67,7 @@ export default {
       camera = new THREE.PerspectiveCamera(
         45,
         window.innerWidth / window.innerHeight,
-        1,
+        30,
         cameraMaxDistance
       );
       camera.position.set(0, 500, 3000);
@@ -98,7 +98,7 @@ export default {
       renderer = new THREE.WebGLRenderer({
         canvas: this.$refs.threeCanvas,
         antialias: true,
-        logarithmicDepthBuffer: true,
+        // logarithmicDepthBuffer: true,
       });
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -106,7 +106,7 @@ export default {
 
       // 创建线框效果
       effect = new OutlineEffect(renderer, {
-        defaultThickness: 0.004,
+        defaultThickness: 0.003,
         defaultColor: wireLinColor,
       });
       // 是否开启
