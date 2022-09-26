@@ -20,7 +20,15 @@ import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { OutlineEffect } from "three/examples/jsm/effects/OutlineEffect";
 import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 
-let camera, scene, renderer, controls, effect, model, wireLineModeColor;
+let camera,
+  scene,
+  renderer,
+  controls,
+  effect,
+  model,
+  wireLineModeColor,
+  wireLinColor,
+  ground;
 const option = {
   mode: "material",
 };
@@ -48,7 +56,10 @@ export default {
       const cameraMaxDistance = 20000;
       // 线框模式时object颜色
       wireLineModeColor = new THREE.Color(1, 1, 1);
-
+      // 线框颜色
+      // wireLinColor = [1.0, 0.6, 0];
+      wireLinColor = [0, 0, 0];
+      
       // 设置初始化状态
       this.$refs.threeCanvas.hidden = true;
 
@@ -75,7 +86,7 @@ export default {
       dirLight.castShadow = true;
 
       // 添加ground
-      const ground = new THREE.Mesh(
+      ground = new THREE.Mesh(
         new THREE.PlaneGeometry(10000, 10000),
         new THREE.MeshPhongMaterial({ color: 0xaaaaaa, depthWrite: false })
       );
@@ -94,7 +105,10 @@ export default {
       renderer.shadowMap.enabled = true;
 
       // 创建线框效果
-      effect = new OutlineEffect(renderer, { defaultThickness: 0.004 });
+      effect = new OutlineEffect(renderer, {
+        defaultThickness: 0.004,
+        defaultColor: wireLinColor,
+      });
       // 开启模糊
       effect.blur = true;
       // 是否开启
@@ -110,6 +124,7 @@ export default {
       controls = new OrbitControls(camera, renderer.domElement);
       controls.autoRotate = true;
       controls.autoRotateSpeed = 1.5;
+      controls.enablePan = false;
       controls.target.set(0, 0, 0);
 
       // 加载进度manager
@@ -339,6 +354,14 @@ export default {
       requestAnimationFrame(this.animate);
       // 更新control状态
       controls.update();
+
+      // hack:相机看到ground反面出现outline bug
+      if (camera.position.y < ground.position.z) {
+        ground.visible = false;
+      } else {
+        ground.visible = true;
+      }
+
       // 每帧渲染
       effect.render(scene, camera);
     },
