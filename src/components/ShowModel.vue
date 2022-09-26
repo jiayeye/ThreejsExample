@@ -89,6 +89,7 @@ export default {
       controls = new OrbitControls(camera, renderer.domElement);
       controls.autoRotate = true;
       controls.autoRotateSpeed = 1.5;
+      controls.enablePan = false;
       controls.target.set(0, 0, 0);
 
       // 加载进度manager
