@@ -59,7 +59,7 @@ export default {
       // 线框颜色
       // wireLinColor = [1.0, 0.6, 0];
       wireLinColor = [0, 0, 0];
-      
+
       // 设置初始化状态
       this.$refs.threeCanvas.hidden = true;
 
@@ -109,8 +109,6 @@ export default {
         defaultThickness: 0.004,
         defaultColor: wireLinColor,
       });
-      // 开启模糊
-      effect.blur = true;
       // 是否开启
       effect.enabled = false;
 
