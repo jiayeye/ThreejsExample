@@ -39,6 +39,9 @@ export default {
   },
   methods: {
     initScene(modelUrl) {
+      // reset
+      this.destroy();
+
       // 相机far
       const cameraMaxDistance = 20000;
 
@@ -219,6 +222,18 @@ export default {
       // 每帧渲染
       renderer.render(scene, camera);
     },
+    // 清空场景
+    destroy(){
+      if(renderer){
+        renderer.domElement.addEventListener('dblclick', null, false); //remove listener to render
+        renderer.forceContextLoss();
+      }
+      renderer = null;
+      scene = null;
+      camera = null;
+      controls = null;
+      // console.log('3D scene destroy');
+    },
   },
 
   beforeDestroy() {
@@ -228,6 +243,9 @@ export default {
     window.removeEventListener("resize", this.onWindowResize);
     // 移除mouseDown监听
     window.removeEventListener("mousedown", this.onMouseDown);
+
+    // 清除场景
+    this.destroy();
   },
 };
 </script>

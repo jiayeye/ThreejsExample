@@ -23,4 +23,6 @@ import ShowModel from "./components/ShowModel.vue";
 
   <!-- <ShowModel modelUrl= "https://mz-reszgb.oss-cn-beijing.aliyuncs.com/lisongming_test_1/FY0018M0L-%E6%B5%B7%E5%B0%94OBT600-10SDA%E5%8E%A8%E7%94%B5.fbx"/> -->
   <!-- <ShowModel modelUrl= "https://syn-yf-design-tool.oss-cn-beijing.aliyuncs.com/save_fbx/XXYWHLG01-模型.fbx" /> -->
+  <!-- <ShowModel modelUrl= "https://syn-yf-design-tool.oss-cn-beijing.aliyuncs.com/save_fbx/STW00S0A0-海尔-VHX-1202AWRR-升降洗漱盆.fbx"/> -->
+
 </template>
