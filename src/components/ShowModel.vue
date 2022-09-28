@@ -43,7 +43,7 @@ export default {
       this.destroy();
 
       // 相机far
-      const cameraMaxDistance = 20000;
+      const cameraMaxDistance = 12000;
 
       // 设置初始化状态
       this.$refs.threeCanvas.hidden = true;
@@ -52,7 +52,7 @@ export default {
       camera = new THREE.PerspectiveCamera(
         45,
         window.innerWidth / window.innerHeight,
-        1,
+        30,
         cameraMaxDistance
       );
       camera.position.set(0, 500, 3000);
@@ -124,11 +124,11 @@ export default {
           const yH = bbox.max.y - bbox.min.y;
           const zH = bbox.max.z - bbox.min.z;
           const maxValue = xH > yH ? (xH > zH ? xH : zH) : yH > zH ? yH : zH;
-          const cameraZ = maxValue * 2;
+          const cameraZ = maxValue * 1.5;
           camera.position.set(0, cameraZ / 6, cameraZ);
 
           // 设置zoom limit
-          const cameraMaxDistance = maxValue * 3;
+          const cameraMaxDistance = maxValue * 2.5;
           controls.maxDistance =
             cameraMaxDistance < cameraMaxDistance
               ? cameraMaxDistance
