@@ -124,7 +124,7 @@ export default {
           const yH = bbox.max.y - bbox.min.y;
           const zH = bbox.max.z - bbox.min.z;
           const maxValue = xH > yH ? (xH > zH ? xH : zH) : yH > zH ? yH : zH;
-          const cameraZ = maxValue * 1.5;
+          const cameraZ = maxValue * 1.6;
           camera.position.set(0, cameraZ / 6, cameraZ);
 
           // 设置zoom limit
