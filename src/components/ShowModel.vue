@@ -18,7 +18,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 
-let camera, scene, renderer, controls;
+let camera, scene, renderer, controls, tickId;
 
 export default {
   props: {
@@ -216,7 +216,8 @@ export default {
 
     // 每帧调用
     animate() {
-      requestAnimationFrame(this.animate);
+      // 获取callback handler
+      tickId = requestAnimationFrame(this.animate);
       // 更新control状态
       controls.update();
       // 每帧渲染
@@ -224,6 +225,13 @@ export default {
     },
     // 清空场景
     destroy(){
+      // 使用handler取消每帧调用
+      cancelAnimationFrame(tickId);
+      // 移除resize监听
+      window.removeEventListener("resize", this.onWindowResize);
+      // 移除mouseDown监听
+      window.removeEventListener("mousedown", this.onMouseDown);
+      // 重置变量
       if(renderer){
         renderer.domElement.addEventListener('dblclick', null, false); //remove listener to render
         renderer.forceContextLoss();
@@ -232,18 +240,10 @@ export default {
       scene = null;
       camera = null;
       controls = null;
-      // console.log('3D scene destroy');
     },
   },
 
   beforeDestroy() {
-    // 取消每帧调用
-    cancelAnimationFrame(this.animate);
-    // 移除resize监听
-    window.removeEventListener("resize", this.onWindowResize);
-    // 移除mouseDown监听
-    window.removeEventListener("mousedown", this.onMouseDown);
-
     // 清除场景
     this.destroy();
   },
