@@ -104,8 +104,11 @@ export default {
               child.receiveShadow = false;
             }
           });
-          // 根据包围盒设置地面位置，保证阴影投在最下方
+          // 设置object position默认值
+          object.position.set(0,0,0);
+          // 获取包围盒
           const bbox = new THREE.Box3().setFromObject(object);
+          // 根据包围盒设置地面位置，保证阴影投在最下方
           ground.position.set(0, -(bbox.max.y - bbox.min.y) / 2, 0);
           // 根据包围盒设置设置物体中心点为（0，0，0）
           object.position.set(
@@ -155,6 +158,12 @@ export default {
 
           // 添加object到场景里
           scene.add(object);
+
+          // 显示包围盒
+          // const boxHelper = new THREE.BoxHelper(object, 0xff0000);
+          // boxHelper.update();
+          // scene.add(boxHelper);
+
           // 隐藏进度条
           this.showProgress = false;
           // 显示canvas
