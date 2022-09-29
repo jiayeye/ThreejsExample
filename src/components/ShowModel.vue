@@ -18,7 +18,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 
-let camera, scene, renderer, controls, tickId;
+let camera, scene, renderer, controls, tickId, scale;
 
 export default {
   props: {
@@ -30,7 +30,7 @@ export default {
   data() {
     return {
       showErrorInfo: false,
-      showProgress: true,
+      showProgress: false,
       progressValue: 0,
     };
   },
@@ -39,14 +39,12 @@ export default {
   },
   methods: {
     initScene(modelUrl) {
+      scale = 1;
       // reset
       this.destroy();
 
       // 相机far
       const cameraMaxDistance = 12000;
-
-      // 设置初始化状态
-      this.$refs.threeCanvas.hidden = true;
 
       // 添加透视相机，设置fov、初始位置
       camera = new THREE.PerspectiveCamera(
@@ -55,7 +53,8 @@ export default {
         30,
         cameraMaxDistance
       );
-      camera.position.set(0, 500, 3000);
+      
+      camera.position.set(0, 0, 100);
 
       // 添加场景及颜色
       scene = new THREE.Scene();
@@ -68,16 +67,9 @@ export default {
 
       // 设置直射光
       const dirLight = new THREE.DirectionalLight(0xdddddd);
-      dirLight.castShadow = true;
-
-      // 添加ground
-      const ground = new THREE.Mesh(
-        new THREE.PlaneGeometry(10000, 10000),
-        new THREE.MeshPhongMaterial({ color: 0xaaaaaa, depthWrite: false })
-      );
-      ground.rotation.x = -Math.PI / 2;
-      ground.receiveShadow = true;
-      scene.add(ground);
+      dirLight.castShadow = false;
+      dirLight.intensity = 0.6;
+      scene.add(dirLight);
 
       // 添加WebGLRenderer，设置size
       renderer = new THREE.WebGLRenderer({
@@ -85,8 +77,8 @@ export default {
         antialias: true,
       });
       renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.shadowMap.enabled = true;
+      renderer.setSize(window.innerWidth * scale, window.innerHeight * scale);
+      renderer.shadowMap.enabled = false;
 
       // 添加相机控制器
       controls = new OrbitControls(camera, renderer.domElement);
@@ -98,83 +90,86 @@ export default {
       // 加载进度manager
       const manager = new THREE.LoadingManager();
       const loader = new FBXLoader(manager);
+      // 除湿机
       loader.load(
-        modelUrl,
+        'https://syn-yf-design-tool.oss-cn-beijing.aliyuncs.com/save_fbx/AJ0261M07-模型.fbx',
         (object) => {
           object.traverse((child) => {
             if (child.isMesh) {
-              child.castShadow = true;
+              child.castShadow = false;
               child.receiveShadow = false;
             }
           });
-          // 设置object position默认值
-          object.position.set(0,0,0);
-          // 获取包围盒
-          const bbox = new THREE.Box3().setFromObject(object);
-          // 根据包围盒设置地面位置，保证阴影投在最下方
-          ground.position.set(0, -(bbox.max.y - bbox.min.y) / 2, 0);
-          // 根据包围盒设置设置物体中心点为（0，0，0）
-          object.position.set(
-            -(bbox.min.x + bbox.max.x) / 2,
-            -(bbox.min.y + bbox.max.y) / 2,
-            -(bbox.min.z + bbox.max.z) / 2
-          );
-          // 根据物体大小适配相机位置
-          const xH = bbox.max.x - bbox.min.x;
-          const yH = bbox.max.y - bbox.min.y;
-          const zH = bbox.max.z - bbox.min.z;
-          const maxValue = xH > yH ? (xH > zH ? xH : zH) : yH > zH ? yH : zH;
-          const cameraZ = maxValue * 1.6;
-          camera.position.set(0, cameraZ / 6, cameraZ);
-
-          // 设置zoom limit
-          const cameraMaxDistance = maxValue * 2.5;
-          controls.maxDistance =
-            cameraMaxDistance < cameraMaxDistance
-              ? cameraMaxDistance
-              : cameraMaxDistance;
-          controls.minDistance = maxValue;
-
-          // 根据物体大小设置相机投影范围
-          const dirLightY = maxValue * 1.2;
-          const dirLightZ = maxValue * 0.8;
-          dirLight.position.set(0, dirLightY, dirLightZ);
-          // 设置camera投影范围
-          dirLight.shadow.camera.top = dirLightY;
-          dirLight.shadow.camera.bottom = -dirLightY;
-          dirLight.shadow.camera.left = -dirLightY;
-          dirLight.shadow.camera.right = dirLightY;
-          dirLight.shadow.camera.near = 1;
-          dirLight.shadow.camera.far = dirLightY * 2;
-          // 开启灯光投影
-          dirLight.castShadow = true;
-          dirLight.intensity = 0.6;
-          scene.add(dirLight);
-
-          // 设置背面直射光照
-          const dirLightBack = new THREE.DirectionalLight(0x999999);
-          dirLightBack.position.set(0, dirLightY, -dirLightZ);
-          dirLightBack.intensity = 0.15;
-          scene.add(dirLightBack);
-          // 显示投影框
-          // scene.add( new THREE.CameraHelper( dirLight.shadow.camera ) );
+          // 设置object position
+          object.position.set(0, -900, -2000);
 
           // 添加object到场景里
           scene.add(object);
-
-          // 显示包围盒
-          // const boxHelper = new THREE.BoxHelper(object, 0xff0000);
-          // boxHelper.update();
-          // scene.add(boxHelper);
-
-          // 隐藏进度条
-          this.showProgress = false;
-          // 显示canvas
-          this.$refs.threeCanvas.hidden = false;
-        },
-        this.onProgress,
-        this.onError
+        }
       );
+
+      // 体脂秤
+      loader.load(
+        'https://syn-yf-design-tool.oss-cn-beijing.aliyuncs.com/save_fbx/JM03F400Y-模型.fbx',
+        (object) => {
+          object.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = false;
+              child.receiveShadow = false;
+            }
+          });
+          // 设置object position
+          object.position.set(700, -930, -2300);
+
+          // 添加object到场景里
+          scene.add(object);
+        }
+      );
+
+        // 电视
+        loader.load(
+        'https://syn-yf-design-tool.oss-cn-beijing.aliyuncs.com/save_fbx/DH1UN0A02-模型1.fbx',
+        (object) => {
+          object.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = false;
+              child.receiveShadow = false;
+            }
+          });
+          // 设置object position
+          object.position.set(1760, 95, -1790);
+
+          // 添加object到场景里
+          scene.add(object);
+        }
+      );
+
+      // px = right
+      // nx = left
+      // py = top
+      // ny = bottom
+      // pz = front
+      // nz = back
+      const textures = [];
+      const px = new THREE.TextureLoader().load("panorama_cube_b/px.jpg");
+      const nx = new THREE.TextureLoader().load("panorama_cube_b/nx.jpg");
+      const py = new THREE.TextureLoader().load("panorama_cube_b/py.jpg");
+      const ny = new THREE.TextureLoader().load("panorama_cube_b/ny.jpg");
+      const pz = new THREE.TextureLoader().load("panorama_cube_b/pz.jpg");
+      const nz = new THREE.TextureLoader().load("panorama_cube_b/nz.jpg");
+      textures.push(px);
+      textures.push(nx);
+      textures.push(py);
+      textures.push(ny);
+      textures.push(pz);
+      textures.push(nz);
+      const materials = [];
+      for (let i = 0; i < 6; i++) {
+        materials.push(new THREE.MeshBasicMaterial({ map: textures[i] }));
+      }
+      const skyBox = new THREE.Mesh(new THREE.BoxGeometry(5000, 5000, 5000), materials);
+      skyBox.geometry.scale(1, 1, -1);
+      scene.add(skyBox);
 
       // 监听窗口reszie事件
       window.addEventListener("resize", this.onWindowResize);
@@ -195,7 +190,7 @@ export default {
 
     // 加载失败回掉
     onError(error) {
-      // console.log(error.message);
+      console.log(error.message);
       this.showProgress = false;
       this.$refs.threeCanvas.hidden = true;
       this.showErrorInfo = true;
@@ -206,7 +201,7 @@ export default {
       camera.aspect = window.innerWidth / window.innerHeight;
       // 更新相机投影矩阵
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(window.innerWidth * scale, window.innerHeight * scale);
     },
 
     // 鼠标点击事件
@@ -218,21 +213,22 @@ export default {
     animate() {
       // 获取callback handler
       tickId = requestAnimationFrame(this.animate);
+
       // 更新control状态
       controls.update();
       // 每帧渲染
       renderer.render(scene, camera);
     },
     // 清空场景
-    destroy(){
+    destroy() {
       // 使用handler取消每帧调用
       cancelAnimationFrame(tickId);
       // 移除resize监听
       window.removeEventListener("resize", this.onWindowResize);
       // 移除mouseDown监听
       window.removeEventListener("mousedown", this.onMouseDown);
-      if(renderer){
-        renderer.domElement.addEventListener('dblclick', null, false); //remove listener to render
+      if (renderer) {
+        renderer.domElement.addEventListener("dblclick", null, false); //remove listener to render
         renderer.forceContextLoss();
       }
       renderer = null;
@@ -243,6 +239,7 @@ export default {
   },
 
   beforeDestroy() {
+    console.log("beforeDestroy");
     // 清除场景
     this.destroy();
   },
