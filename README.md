@@ -1,9 +1,29 @@
-# ThreejsExample
+# threejs-example
 
-1.init a reat vite project: https://www.section.io/engineering-education/creating-a-react-app-using-vite/
+This template should help get you started developing with Vue 3 in Vite.
 
-2.use fiber: https://dev.to/0xkoji/compare-react-with-three-js-and-react-three-fiber-32ij
+## Recommended IDE Setup
 
-3.npm install 
+[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
 
-4.npm run dev
+## Customize configuration
+
+See [Vite Configuration Reference](https://vitejs.dev/config/).
+
+## Project Setup
+
+```sh
+npm install
+```
+
+### Compile and Hot-Reload for Development
+
+```sh
+npm run dev
+```
+
+### Compile and Minify for Production
+
+```sh
+npm run build
+```
