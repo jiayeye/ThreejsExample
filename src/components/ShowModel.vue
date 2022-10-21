@@ -51,6 +51,7 @@ export default {
     this.initScene(this.modelUrl);
   },
   methods: {
+    
     initScene(modelUrl) {
       // 相机far
       const cameraMaxDistance = 12000;
