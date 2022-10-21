@@ -4,27 +4,17 @@
       <text id="errorText" v-if="showErrorInfo">加载失败，请检查资源</text>
     </div>
     <canvas id="threeCanvas" ref="threeCanvas"></canvas>
-    <progress
-      id="progress"
-      v-if="showProgress"
-      :value="progressValue"
-      max="100"
-    ></progress>
+    <progress id="progress" v-if="showProgress" :value="progressValue" max="100"></progress>
   </div>
 </template>
 
 <script>
-import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { OutlineEffect } from "three/examples/jsm/effects/OutlineEffect";
 import { GUI } from "three/addons/libs/lil-gui.module.min.js";
-
-let camera,
-  scene,
-  renderer,
-  controls,
-  effect,
+let camera, scene, renderer, controls, tickId, scale, effect,
   model,
   wireLineModeColor,
   wireLinColor,
@@ -32,7 +22,6 @@ let camera,
 const option = {
   mode: "material",
 };
-
 export default {
   props: {
     modelUrl: {
@@ -51,8 +40,11 @@ export default {
     this.initScene(this.modelUrl);
   },
   methods: {
-    
     initScene(modelUrl) {
+      scale = 0.8;
+      // reset
+      this.destroy();
+
       // 相机far
       const cameraMaxDistance = 12000;
       // 线框模式时object颜色
@@ -60,7 +52,6 @@ export default {
       // 线框颜色
       // wireLinColor = [1.0, 0.6, 0];
       wireLinColor = [0, 0, 0];
-
       // 设置初始化状态
       this.$refs.threeCanvas.hidden = true;
 
@@ -102,7 +93,7 @@ export default {
         // logarithmicDepthBuffer: true,
       });
       renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(window.innerWidth * scale, window.innerHeight * scale);
       renderer.shadowMap.enabled = true;
 
       // 创建线框效果
@@ -164,9 +155,11 @@ export default {
               }
             }
           });
-
-          // 根据包围盒设置地面位置，保证阴影投在最下方
+          // 设置object position默认值
+          object.position.set(0, 0, 0);
+          // 获取包围盒
           const bbox = new THREE.Box3().setFromObject(object);
+          // 根据包围盒设置地面位置，保证阴影投在最下方
           ground.position.set(0, -(bbox.max.y - bbox.min.y) / 2, 0);
           // 根据包围盒设置设置物体中心点为（0，0，0）
           object.position.set(
@@ -179,11 +172,11 @@ export default {
           const yH = bbox.max.y - bbox.min.y;
           const zH = bbox.max.z - bbox.min.z;
           const maxValue = xH > yH ? (xH > zH ? xH : zH) : yH > zH ? yH : zH;
-          const cameraZ = maxValue * 2;
+          const cameraZ = maxValue * 1.4;
           camera.position.set(0, cameraZ / 6, cameraZ);
 
           // 设置zoom limit
-          const cameraMaxDistance = maxValue * 3;
+          const cameraMaxDistance = maxValue * 2.5;
           controls.maxDistance =
             cameraMaxDistance < cameraMaxDistance
               ? cameraMaxDistance
@@ -216,6 +209,12 @@ export default {
 
           // 添加object到场景里
           scene.add(object);
+
+          // 显示包围盒
+          // const boxHelper = new THREE.BoxHelper(object, 0xff0000);
+          // boxHelper.update();
+          // scene.add(boxHelper);
+
           // 隐藏进度条
           this.showProgress = false;
           // 显示canvas
@@ -226,9 +225,9 @@ export default {
       );
 
       // 监听窗口reszie事件
-      window.addEventListener("resize", this.onWindowResize);
+      window.addEventListener('resize', this.onWindowResize);
       // 监听窗口reszie事件
-      window.addEventListener("mousedown", this.onMouseDown);
+      window.addEventListener('mousedown', this.onMouseDown);
       // 设置tick
       this.animate();
     },
@@ -340,7 +339,7 @@ export default {
       camera.aspect = window.innerWidth / window.innerHeight;
       // 更新相机投影矩阵
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(window.innerWidth * scale, window.innerHeight * scale);
     },
 
     // 鼠标点击事件
@@ -350,7 +349,9 @@ export default {
 
     // 每帧调用
     animate() {
-      requestAnimationFrame(this.animate);
+      // 获取callback handler
+      tickId = requestAnimationFrame(this.animate);
+
       // 更新control状态
       controls.update();
 
@@ -364,42 +365,53 @@ export default {
       // 每帧渲染
       effect.render(scene, camera);
     },
+    // 清空场景
+    destroy() {
+      // 使用handler取消每帧调用
+      cancelAnimationFrame(tickId);
+      // 移除resize监听
+      window.removeEventListener('resize', this.onWindowResize);
+      // 移除mouseDown监听
+      window.removeEventListener('mousedown', this.onMouseDown);
+      if (renderer) {
+        renderer.domElement.addEventListener('dblclick', null, false); //remove listener to render
+        renderer.forceContextLoss();
+      }
+      renderer = null;
+      scene = null;
+      camera = null;
+      controls = null;
+    },
   },
 
   beforeDestroy() {
-    // 取消每帧调用
-    cancelAnimationFrame(this.animate);
-    // 移除resize监听
-    window.removeEventListener("resize", this.onWindowResize);
-    // 移除mouseDown监听
-    window.removeEventListener("mousedown", this.onMouseDown);
+    console.log('beforeDestroy');
+    // 清除场景
+    this.destroy();
   },
 };
 </script>
 
 <style scoped>
-#three {
+#threeCanvas {
   width: 100%;
   height: 100%;
-  position: fixed;
-  left: 0;
-  top: 0;
+  position: relative;
+  left: 5%;
+  /* bottom: 100%; */
 }
 
 #progress {
-  width: 40%;
+  margin-left: 25%;
+  width: 50%;
   height: 2rem;
-  position: fixed;
+  /* position: fixed;
   left: 30%;
-  top: 47%;
+  top: 47%; */
 }
 
 #textDiv {
-  position: fixed;
   width: 100%;
-  height: 40px;
-  line-height: 40px;
   text-align: center;
-  top: 46%;
 }
 </style>
