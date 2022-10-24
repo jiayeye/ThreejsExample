@@ -81,7 +81,7 @@ export default {
       } else {
         option.mode = "material";
       }
-      this.onGUIChange();
+      this.onOutlineStateChange();
     },
 
     initScene(modelUrl) {
@@ -167,7 +167,7 @@ export default {
       // gui
       //   .add(option, "mode")
       //   .options(["material", "wireFrame", "materialAndWireFrame"])
-      //   .onChange(this.onGUIChange);
+      //   .onChange(this.onOutlineStateChange);
 
       // 添加相机控制器
       controls = new OrbitControls(camera, labelRenderer.domElement);
@@ -344,8 +344,6 @@ export default {
             bbox1.max.z - bbox1.min.z
           );
 
-
-
           // 生成标尺的四个点
           const radius = 7;
           this.generatePoint(rightDownPoint, radius, material);
@@ -380,7 +378,9 @@ export default {
       const line = new THREE.Line(geometry, material);
       // 添加到场景
       scene.add(line);
+      // 初始不可见
       line.visible = false;
+      // 收集所有measurement物体
       measureOjbects.push(line);
     },
 
@@ -407,7 +407,9 @@ export default {
       label.position.set(position.x, position.y, position.z);
       // 添加到scene
       parent.add(label);
+      // 初始不可见
       label.visible = false;
+      // 收集所有measurement物体
       measureOjbects.push(label);
     },
 
@@ -418,7 +420,9 @@ export default {
       const sphere = new THREE.Mesh(geometry, material);
       sphere.position.set(position.x, position.y, position.z);
       scene.add(sphere);
+      // 初始不可见
       sphere.visible = false;
+      // 收集所有measurement物体
       measureOjbects.push(sphere);
     },
 
@@ -440,7 +444,7 @@ export default {
       this.showMenu = false;
     },
 
-    onGUIChange() {
+    onOutlineStateChange() {
       model.traverse((child) => {
         if (child.isMesh) {
           // 线框模式颜色
