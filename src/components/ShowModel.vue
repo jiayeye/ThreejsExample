@@ -9,7 +9,7 @@
     </div>
     <div id="menuDiv" v-if="showMenu">
       <div class="measureMent" :class="{ 'measurementActive': isMearmentState }" @click="onMeasurementClick"> </div>
-      <div class="outline"  :class="{ 'outlineActive': isOutlineState }" @click="onOutlineClick"> </div>
+      <div class="outline" :class="{ 'outlineActive': isOutlineState }" @click="onOutlineClick"> </div>
     </div>
   </div>
 </template>
@@ -76,20 +76,20 @@ export default {
       // 切换线框背景图
       this.isOutlineState = !this.isOutlineState;
       // 切换线框状态
-      if(option.mode === "material") {
+      if (option.mode === "material") {
         option.mode = "wireFrame";
       } else {
         option.mode = "material";
       }
+      // 切换材质
       this.onOutlineStateChange();
     },
 
     initScene(modelUrl) {
-      scale = 0.8;
-      measureOjbects = [];
       // reset
       this.destroy();
-
+      scale = 0.8;
+      measureOjbects = [];
       // 相机far
       const cameraMaxDistance = 12000;
       // 线框模式时object颜色
@@ -574,6 +574,16 @@ export default {
         renderer.domElement.addEventListener('dblclick', null, false); //remove listener to render
         renderer.forceContextLoss();
       }
+      if (measureOjbects) {
+        measureOjbects.forEach((obj) => {
+          scene.remove(obj);
+        });
+      }
+      labelRenderer = null;
+      if (effect) {
+        effect.cleanupCache();
+      }
+      effect = null;
       renderer = null;
       scene = null;
       camera = null;
