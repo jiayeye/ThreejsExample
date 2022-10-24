@@ -4,7 +4,13 @@
       <text id="errorText" v-if="showErrorInfo">加载失败，请检查资源</text>
     </div>
     <canvas id="threeCanvas" ref="threeCanvas"></canvas>
-    <progress id="progress" v-if="showProgress" :value="progressValue" max="100"></progress>
+    <div id="progressDiv" v-if="showProgress">
+      <progress id="progress" :value="progressValue" max="100"></progress>
+    </div>
+    <div id="menuDiv" v-if="showMenu">
+      <div class="measureMent" :class="{ 'measurementActive': isMearmentState }" @click="onMeasurementClick"> </div>
+      <div class="outline"  :class="{ 'outlineActive': isOutlineState }" @click="onOutlineClick"> </div>
+    </div>
   </div>
 </template>
 
@@ -13,18 +19,21 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { OutlineEffect } from "three/examples/jsm/effects/OutlineEffect";
-import { GUI } from "three/addons/libs/lil-gui.module.min.js";
+// import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 import {
   CSS2DRenderer,
   CSS2DObject,
 } from "three/addons/renderers/CSS2DRenderer.js";
+
 let camera, scene, renderer, controls, tickId, scale, effect,
   model,
   wireLineModeColor,
   wireLinColor,
   measureLineColor,
   ground,
-  labelRenderer;
+  labelRenderer,
+  // 标尺objects
+  measureOjbects;
 
 const option = {
   mode: "material",
@@ -40,15 +49,44 @@ export default {
     return {
       showErrorInfo: false,
       showProgress: true,
+      showMenu: false,
       progressValue: 0,
+      // 是否为标尺模式
+      isMearmentState: false,
+      // 是否为线框模式
+      isOutlineState: false,
     };
   },
   mounted() {
     this.initScene(this.modelUrl);
   },
   methods: {
+    // 点击标尺按钮
+    onMeasurementClick() {
+      // 切换按钮背景图片
+      this.isMearmentState = !this.isMearmentState;
+      // 切换标尺显隐状态
+      measureOjbects.forEach((obj) => {
+        obj.visible = !obj.visible;
+      });
+    },
+
+    // 点击线框按钮
+    onOutlineClick() {
+      // 切换线框背景图
+      this.isOutlineState = !this.isOutlineState;
+      // 切换线框状态
+      if(option.mode === "material") {
+        option.mode = "wireFrame";
+      } else {
+        option.mode = "material";
+      }
+      this.onGUIChange();
+    },
+
     initScene(modelUrl) {
       scale = 0.8;
+      measureOjbects = [];
       // reset
       this.destroy();
 
@@ -110,13 +148,11 @@ export default {
       // 创建labal renderer
       labelRenderer = new CSS2DRenderer();
       labelRenderer.setSize(window.innerWidth * scale, window.innerHeight * scale);
+      // 确保和threeCanvas大小位置完全一致
       labelRenderer.domElement.style.position = "absolute";
-      labelRenderer.domElement.style.left = "4%";
+      labelRenderer.domElement.style.left = "10%";
+      labelRenderer.domElement.style.top = "0%";
       document.body.appendChild(labelRenderer.domElement);
-
-      // 设置body布局避免resize时自动变换
-      document.body.style.display = "flex";
-      document.body.style.placeItems = "center";
 
       // 创建线框效果
       effect = new OutlineEffect(renderer, {
@@ -126,11 +162,12 @@ export default {
       // 是否开启
       effect.enabled = false;
 
-      const gui = new GUI();
-      gui
-        .add(option, "mode")
-        .options(["material", "wireFrame", "materialAndWireFrame"])
-        .onChange(this.onGUIChange);
+      // 添加UI
+      // const gui = new GUI();
+      // gui
+      //   .add(option, "mode")
+      //   .options(["material", "wireFrame", "materialAndWireFrame"])
+      //   .onChange(this.onGUIChange);
 
       // 添加相机控制器
       controls = new OrbitControls(camera, labelRenderer.domElement);
@@ -320,6 +357,8 @@ export default {
           this.showProgress = false;
           // 显示canvas
           this.$refs.threeCanvas.hidden = false;
+          // 显示menu
+          this.showMenu = true;
         },
         this.onProgress,
         this.onError
@@ -341,6 +380,8 @@ export default {
       const line = new THREE.Line(geometry, material);
       // 添加到场景
       scene.add(line);
+      line.visible = false;
+      measureOjbects.push(line);
     },
 
     // 生成2d标签
@@ -350,12 +391,15 @@ export default {
       // 设置标签样式
       divLabel.textContent = Math.round(distance).toString() + "mm";
 
-      divLabel.style.fontWeight = "600";
+      // 文字粗细
+      divLabel.style.fontWeight = "450";
       divLabel.style.fontSize = "16px";
-      divLabel.style.padding = "0px 10px";
+      // 上下左右边距
+      divLabel.style.padding = "3px 10px";
       divLabel.style.backgroundColor = "white";
       divLabel.style.opacity = "0.9";
       divLabel.style.borderRadius = "15px";
+      divLabel.style.color = "gray";
 
       // 创建标签label
       const label = new CSS2DObject(divLabel);
@@ -363,6 +407,8 @@ export default {
       label.position.set(position.x, position.y, position.z);
       // 添加到scene
       parent.add(label);
+      label.visible = false;
+      measureOjbects.push(label);
     },
 
     // 生成标尺点
@@ -372,6 +418,8 @@ export default {
       const sphere = new THREE.Mesh(geometry, material);
       sphere.position.set(position.x, position.y, position.z);
       scene.add(sphere);
+      sphere.visible = false;
+      measureOjbects.push(sphere);
     },
 
     // 加载进度
@@ -389,6 +437,7 @@ export default {
       this.showProgress = false;
       this.$refs.threeCanvas.hidden = true;
       this.showErrorInfo = true;
+      this.showMenu = false;
     },
 
     onGUIChange() {
@@ -533,6 +582,8 @@ export default {
     // 清除场景
     this.destroy();
   },
+
+
 };
 </script>
 
@@ -541,21 +592,82 @@ export default {
   width: 100%;
   height: 100%;
   position: relative;
-  left: 5%;
+  left: 10%;
+  top: 0%;
   /* bottom: 100%; */
 }
 
+#progressDiv {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 44%;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+}
+
 #progress {
-  margin-left: 25%;
   width: 50%;
   height: 2rem;
-  /* position: fixed;
-  left: 30%;
-  top: 47%; */
 }
 
 #textDiv {
   width: 100%;
+  position: absolute;
+  top: 44%;
   text-align: center;
+}
+
+#menuDiv {
+  width: 100%;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  margin-top: -64px;
+  z-index: 5;
+
+}
+
+
+.measureMent {
+  width: 44px;
+  height: 44px;
+  background-image: url('/withouMearureMode.png');
+  background-size: contain;
+  /* 设置背景透明度*/
+  background-color: rgba(255, 255, 255, 0.9);
+  border-color: gray;
+  border-radius: 5px;
+  border: 2px solid rgb(179, 179, 179);
+  box-shadow: none;
+}
+
+.measureMent:hover {
+  background-color: rgb(204, 204, 204);
+}
+
+.measurementActive {
+  background-image: url('/measureMode.png');
+}
+
+.outline {
+  width: 44px;
+  height: 44px;
+  background-image: url('/matMode.png');
+  background-size: contain;
+  /* 设置背景透明度*/
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgb(179, 179, 179);
+  border-radius: 5px;
+  box-shadow: none;
+}
+
+.outline:hover {
+  background-color: rgb(204, 204, 204);
+}
+
+.outlineActive {
+  background-image: url('/wireMode.png');
 }
 </style>
