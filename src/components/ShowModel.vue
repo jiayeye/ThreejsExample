@@ -22,6 +22,7 @@ let camera, scene, renderer, controls, tickId, scale, effect,
   model,
   wireLineModeColor,
   wireLinColor,
+  measureLineColor,
   ground,
   labelRenderer;
 
@@ -57,7 +58,11 @@ export default {
       wireLineModeColor = new THREE.Color(1, 1, 1);
       // 线框颜色
       // wireLinColor = [1.0, 0.6, 0];
-      wireLinColor = [0, 0, 0];
+      wireLinColor = [0.0, 0.0, 0.0];
+
+      // 测量线颜色
+      measureLineColor = new THREE.Color(0, 0, 0);
+
       // 设置初始化状态
       this.$refs.threeCanvas.hidden = true;
 
@@ -106,7 +111,7 @@ export default {
       labelRenderer = new CSS2DRenderer();
       labelRenderer.setSize(window.innerWidth * scale, window.innerHeight * scale);
       labelRenderer.domElement.style.position = "absolute";
-      labelRenderer.domElement.style.left = "5%";
+      labelRenderer.domElement.style.left = "4%";
       document.body.appendChild(labelRenderer.domElement);
 
       // 设置body布局避免resize时自动变换
@@ -174,10 +179,12 @@ export default {
           });
           // 设置object position默认值
           object.position.set(0, 0, 0);
-          
           // 不修改rotation，保留用户设置的朝向
           // object.rotation.set(0, 0, 0);
-   
+
+          // 添加object到场景里
+          scene.add(object);
+
           // 获取包围盒
           const bbox = new THREE.Box3().setFromObject(object);
           // 根据包围盒设置地面位置，保证阴影投在最下方
@@ -228,13 +235,12 @@ export default {
           // 显示投影框
           // scene.add( new THREE.CameraHelper( dirLight.shadow.camera ) );
 
-          // 添加object到场景里
-          scene.add(object);
 
           // 显示包围盒
           // const boxHelper = new THREE.BoxHelper(object, 0xff0000);
           // boxHelper.update();
           // scene.add(boxHelper);
+
           // 包围位置为世界坐标，每次使用需要重新计算
           const bbox1 = new THREE.Box3().setFromObject(object);
           const rightDownPoint = new THREE.Vector3(
@@ -248,7 +254,8 @@ export default {
             bbox1.max.z
           );
           // 创建线的材质
-          const material = new THREE.LineBasicMaterial({ color: 0x000000 });
+          const material = new THREE.LineBasicMaterial();
+          material.color = measureLineColor;
           // 设置线的关键点
           const points = [rightDownPoint, leftDownPoint];
           // 生成线
@@ -257,11 +264,11 @@ export default {
           this.generateLabel(
             scene,
             new THREE.Vector3(
-              (bbox.max.x + bbox.min.x) / 2,
-              bbox.min.y,
-              bbox.max.z
+              (bbox1.max.x + bbox1.min.x) / 2,
+              bbox1.min.y,
+              bbox1.max.z
             ),
-            bbox.max.x - bbox.min.x
+            bbox1.max.x - bbox1.min.x
           );
 
           const rightUpPoint = new THREE.Vector3(
@@ -275,11 +282,11 @@ export default {
           this.generateLabel(
             scene,
             new THREE.Vector3(
-              bbox.max.x,
-              (bbox.max.y + bbox.min.y) / 2,
-              bbox.max.z
+              bbox1.max.x,
+              (bbox1.max.y + bbox1.min.y) / 2,
+              bbox1.max.z
             ),
-            bbox.max.y - bbox.min.y
+            bbox1.max.y - bbox1.min.y
           );
 
           const rightBackPoint = new THREE.Vector3(
@@ -293,12 +300,14 @@ export default {
           this.generateLabel(
             scene,
             new THREE.Vector3(
-              bbox.max.x,
-              bbox.min.y,
-              (bbox.max.z + bbox.min.z) / 2
+              bbox1.max.x,
+              bbox1.min.y,
+              (bbox1.max.z + bbox1.min.z) / 2
             ),
-            bbox.max.z - bbox.min.z
+            bbox1.max.z - bbox1.min.z
           );
+
+
 
           // 生成标尺的四个点
           const radius = 7;
@@ -339,13 +348,15 @@ export default {
       // 创建div
       const divLabel = document.createElement("div");
       // 设置标签样式
-      divLabel.textContent = Math.floor(distance).toString() + "mm";
+      divLabel.textContent = Math.round(distance).toString() + "mm";
+
       divLabel.style.fontWeight = "600";
       divLabel.style.fontSize = "16px";
       divLabel.style.padding = "0px 10px";
       divLabel.style.backgroundColor = "white";
-      divLabel.style.opacity = "0.85";
+      divLabel.style.opacity = "0.9";
       divLabel.style.borderRadius = "15px";
+
       // 创建标签label
       const label = new CSS2DObject(divLabel);
       // 设置label在object中位置
