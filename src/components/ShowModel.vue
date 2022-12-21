@@ -223,7 +223,7 @@ export default {
           scene.add(object);
 
           // 获取包围盒
-          const bbox = new THREE.Box3().setFromObject(object);
+          const bbox = new THREE.Box3().setFromObject(object, true);
           // 根据包围盒设置地面位置，保证阴影投在最下方
           ground.position.set(0, -(bbox.max.y - bbox.min.y) / 2, 0);
           // 根据包围盒设置设置物体中心点为（0，0，0）
@@ -279,7 +279,7 @@ export default {
           // scene.add(boxHelper);
 
           // 包围位置为世界坐标，每次使用需要重新计算
-          const bbox1 = new THREE.Box3().setFromObject(object);
+          const bbox1 = new THREE.Box3().setFromObject(object, true);
           const rightDownPoint = new THREE.Vector3(
             bbox1.max.x,
             bbox1.min.y,
