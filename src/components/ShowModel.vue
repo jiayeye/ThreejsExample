@@ -4,12 +4,7 @@
       <text id="errorText" v-if="showErrorInfo">加载失败，请检查资源</text>
     </div>
     <canvas id="threeCanvas" ref="threeCanvas"></canvas>
-    <progress
-      id="progress"
-      v-if="showProgress"
-      :value="progressValue"
-      max="100"
-    ></progress>
+    <progress id="progress" v-if="showProgress" :value="progressValue" max="100"></progress>
   </div>
 </template>
 
@@ -17,6 +12,8 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+
 
 let camera, scene, renderer, controls, tickId;
 
@@ -95,6 +92,28 @@ export default {
       controls.enablePan = false;
       controls.target.set(0, 0, 0);
 
+
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+      window.addEventListener('pointerdown', onPointerDown);
+
+      function onPointerDown(event) {
+
+
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(scene.children, false);
+        if (intersects.length > 0) {
+          console.log(intersects[0]);
+          const object = intersects[0].object;
+          // object.layers.toggle(BLOOM_SCENE);
+
+        }
+
+      }
+
       // 加载进度manager
       const manager = new THREE.LoadingManager();
       const loader = new FBXLoader(manager);
@@ -108,7 +127,7 @@ export default {
             }
           });
           // 设置object position默认值
-          object.position.set(0,0,0);
+          object.position.set(0, 0, 0);
           // 获取包围盒
           const bbox = new THREE.Box3().setFromObject(object);
           // 根据包围盒设置地面位置，保证阴影投在最下方
@@ -160,7 +179,48 @@ export default {
           // scene.add( new THREE.CameraHelper( dirLight.shadow.camera ) );
 
           // 添加object到场景里
-          scene.add(object);
+          // scene.add(object);
+
+          const boxGeometry = new THREE.BoxGeometry(100, 100, 100);
+          const sphereGeometry = new THREE.SphereGeometry(60);
+          const sphereGeometry1 = new THREE.SphereGeometry(70);
+          const sphereGeometry2 = new THREE.SphereGeometry(80);
+          const sphereGeometry3 = new THREE.SphereGeometry(90);
+
+          const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+          const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+          const meshBox = new THREE.Mesh(boxGeometry, boxMaterial);
+          const meshSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+          const meshSphere1 = new THREE.Mesh(sphereGeometry1, sphereMaterial);
+
+          meshBox.position.set(-100, 0, 0);
+          meshSphere.position.set(100, 0, 0);
+          meshSphere1.position.set(200, 0, 0);
+
+          meshBox.add(meshSphere);
+          // 不合批
+          // scene.add(meshBox);
+          // scene.add(meshSphere1);
+
+          // 更新matrix
+          meshBox.updateMatrixWorld(true);
+          meshSphere.updateMatrixWorld(true);
+          meshSphere1.updateMatrixWorld(true);
+
+          // 合并geometry
+          const mergedGeometries = BufferGeometryUtils.mergeBufferGeometries([meshBox.geometry.applyMatrix4(meshBox.matrixWorld), meshSphere.geometry.applyMatrix4(meshSphere.matrixWorld), meshSphere1.geometry.applyMatrix4(meshSphere1.matrixWorld)], true);
+          const singleMergeMesh = new THREE.Mesh(mergedGeometries, boxMaterial);
+          scene.add(singleMergeMesh);
+
+
+          // let geometryArray = [boxGeometry, sphereGeometry, sphereGeometry1, sphereGeometry2, sphereGeometry3]; // 将你的要合并的多个geometry放入到该数组
+          // let materialArray = [boxMaterial, sphereMaterial, sphereMaterial, sphereMaterial, sphereMaterial]; // 将你的要赋值的多个material放入到该数组
+          // // 合并模型
+          // const mergedGeometries = BufferGeometryUtils.mergeBufferGeometries(geometryArray, true);
+          // const singleMergeMesh = new THREE.Mesh(mergedGeometries, boxMaterial);
+          // scene.add( singleMergeMesh ); // 在场景中添加合并后的mesh(模型)
+
 
           // 显示包围盒
           // const boxHelper = new THREE.BoxHelper(object, 0xff0000);
@@ -224,14 +284,14 @@ export default {
       renderer.render(scene, camera);
     },
     // 清空场景
-    destroy(){
+    destroy() {
       // 使用handler取消每帧调用
       cancelAnimationFrame(tickId);
       // 移除resize监听
       window.removeEventListener("resize", this.onWindowResize);
       // 移除mouseDown监听
       window.removeEventListener("mousedown", this.onMouseDown);
-      if(renderer){
+      if (renderer) {
         renderer.domElement.addEventListener('dblclick', null, false); //remove listener to render
         renderer.forceContextLoss();
       }
